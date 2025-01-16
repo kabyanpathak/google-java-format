@@ -14,8 +14,8 @@
 
 package com.google.googlejavaformat.java;
 
-import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
+import com.google.googlejavaformat.java.javadoc.JavadocOptions;
 
 /**
  * Options for a google-java-format invocation.
@@ -28,10 +28,12 @@ import com.google.errorprone.annotations.Immutable;
  * preferences, and in fact it would work directly against our primary goals.
  */
 @Immutable
-@AutoValue
-public abstract class JavaFormatterOptions {
+public class JavaFormatterOptions implements JavadocOptions {
+
+  static final int DEFAULT_MAX_LINE_LENGTH = 100;
 
   public enum Style {
+
     /** The default Google Java Style configuration. */
     GOOGLE(1),
 
@@ -49,17 +51,22 @@ public abstract class JavaFormatterOptions {
     }
   }
 
-  /** Returns the multiplier for the unit of indent. */
-  public int indentationMultiplier() {
-    return style().indentationMultiplier();
+  private final Style style;
+
+  private JavaFormatterOptions(Style style) {
+    this.style = style;
   }
 
-  public abstract boolean formatJavadoc();
+  /** Returns the maximum formatted width */
+  @Override
+  public int maxLineLength() {
+    return DEFAULT_MAX_LINE_LENGTH;
+  }
 
-  public abstract boolean reorderModifiers();
-
-  /** Returns the code style. */
-  public abstract Style style();
+  /** Returns the multiplier for the unit of indent */
+  public int indentationMultiplier() {
+    return style.indentationMultiplier();
+  }
 
   /** Returns the default formatting options. */
   public static JavaFormatterOptions defaultOptions() {
@@ -68,22 +75,22 @@ public abstract class JavaFormatterOptions {
 
   /** Returns a builder for {@link JavaFormatterOptions}. */
   public static Builder builder() {
-    return new AutoValue_JavaFormatterOptions.Builder()
-        .style(Style.GOOGLE)
-        .formatJavadoc(true)
-        .reorderModifiers(true);
+    return new Builder();
   }
 
   /** A builder for {@link JavaFormatterOptions}. */
-  @AutoValue.Builder
-  public abstract static class Builder {
+  public static class Builder {
+    private Style style = Style.GOOGLE;
 
-    public abstract Builder style(Style style);
+    private Builder() {}
 
-    public abstract Builder formatJavadoc(boolean formatJavadoc);
+    public Builder style(Style style) {
+      this.style = style;
+      return this;
+    }
 
-    public abstract Builder reorderModifiers(boolean reorderModifiers);
-
-    public abstract JavaFormatterOptions build();
+    public JavaFormatterOptions build() {
+      return new JavaFormatterOptions(style);
+    }
   }
 }
